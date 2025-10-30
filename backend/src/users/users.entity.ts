@@ -1,4 +1,5 @@
 import { Entity, PrimaryGeneratedColumn, Column } from 'typeorm';
+import { UserStatus } from '../enums/user.status';
 
 @Entity('users')
 export class User {
@@ -8,9 +9,13 @@ export class User {
   @Column({ unique: true })
   username: string;
 
-  @Column({ default: 'User' }) // ❌ Single role only
-  role: string;
+  @Column('json', { default: ['regular_user'] })
+  roles: string[];
 
-  @Column()
-  status: boolean;
+  @Column({
+    type: 'varchar',
+    enum: UserStatus,
+    default: UserStatus.ENABLED,
+  })
+  status: UserStatus;
 }

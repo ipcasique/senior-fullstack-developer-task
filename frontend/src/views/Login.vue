@@ -1,38 +1,44 @@
 <template>
 	<div class="login">
 		<h2>Welcome to HyperGuest Test</h2>
-		<div class="login-form">
-			<input v-model="username" type="text" placeholder="Enter username" />
-			<button @click="handleLogin" :disabled="!username">Login</button>
-		</div>
+		<form class="login-form" @submit.prevent="handleLogin">
+			<input
+          v-model="username"
+          type="text"
+          placeholder="Enter username"
+          autofocus
+      />
+			<button type="submit" :disabled="isLoading || !username">
+        <span v-if="isLoading">Loading..</span>
+        <span v-else>Login</span>
+      </button>
+		</form>
 		<p v-if="error" class="error">{{ error }}</p>
 	</div>
 </template>
 
 <script setup>
-import { ref } from "vue"
-import { useRouter } from "vue-router"
-import axios from "axios"
+import {computed, ref} from "vue"
+import {useRoute, useRouter} from "vue-router"
+import store from "../store/index.js";
 
-const router = useRouter()
-const username = ref("")
-const error = ref("")
+const route = useRoute();
+const router = useRouter();
+const username = ref("");
+const isLoading = computed(() => store.getters.isLoading);
+const error = computed(() => store.getters.error);
+
 
 const handleLogin = async () => {
 	try {
-		error.value = ""
+    await store.dispatch("login", username.value);
 
-		const response = await axios.post(`/api/users/login/${username.value}`)
+    await router.push({
+      path: '/' + (route.query?.target || 'home'),
+    })
 
-		if (response.data) {
-			router.push({
-				path: "/home",
-				query: { username: username.value },
-			})
-		}
 	} catch (err) {
-		error.value =
-			err.response?.data?.message || "Login failed. Please try again."
+    console.log('Error:', err.message || err);
 	}
 }
 </script>
